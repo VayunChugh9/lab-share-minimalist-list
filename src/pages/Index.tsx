@@ -1,31 +1,9 @@
-
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Search, Filter, Calendar, MapPin, Star, Beaker, Microscope, FlaskConical } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface LabSupply {
-  id: string;
-  title: string;
-  category: string;
-  price: number;
-  location: string;
-  rating: number;
-  reviews: number;
-  image: string;
-  available: boolean;
-  description: string;
-  owner: string;
-}
-
-interface Column {
-  id: string;
-  title: string;
-  items: LabSupply[];
-}
+import { DropResult } from 'react-beautiful-dnd';
+import { Column, LabSupply } from '@/types/LabSupply';
+import Header from '@/components/Header';
+import SearchAndFilters from '@/components/SearchAndFilters';
+import DragDropBoard from '@/components/DragDropBoard';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -182,150 +160,24 @@ const Index = () => {
     });
   };
 
-  const SupplyCard = ({ supply, index }: { supply: LabSupply; index: number }) => (
-    <Draggable draggableId={supply.id} index={index}>
-      {(provided, snapshot) => (
-        <Card
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          className={`mb-4 cursor-move transition-all duration-200 hover:shadow-lg ${
-            snapshot.isDragging ? 'shadow-xl scale-105 rotate-2' : ''
-          }`}
-        >
-          <div className="relative">
-            <img
-              src={supply.image}
-              alt={supply.title}
-              className="w-full h-48 object-cover rounded-t-lg"
-            />
-            <Badge className="absolute top-2 right-2 bg-white text-gray-800">
-              {supply.category}
-            </Badge>
-          </div>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-lg text-gray-900 truncate">{supply.title}</h3>
-              <div className="flex items-center ml-2">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm text-gray-600 ml-1">{supply.rating}</span>
-              </div>
-            </div>
-            <p className="text-gray-600 text-sm mb-2 line-clamp-2">{supply.description}</p>
-            <div className="flex items-center text-gray-500 text-sm mb-2">
-              <MapPin className="w-4 h-4 mr-1" />
-              {supply.location}
-            </div>
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-xl font-bold text-gray-900">${supply.price}</span>
-                <span className="text-gray-500 text-sm">/day</span>
-              </div>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                Reserve
-              </Button>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">Owner: {supply.owner}</div>
-          </CardContent>
-        </Card>
-      )}
-    </Draggable>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <Beaker className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">LabShare</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                List Your Equipment
-              </Button>
-              <Button size="sm">
-                Sign In
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
+      <Header />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search lab equipment..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {categories.map(category => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                  className="capitalize"
-                >
-                  {category === 'all' ? 'All Categories' : category}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <SearchAndFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={categories}
+        />
 
-        {/* Drag and Drop Columns */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {columns.map(column => (
-              <div key={column.id} className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                    {column.id === 'available' && <Beaker className="w-5 h-5 mr-2 text-green-600" />}
-                    {column.id === 'reserved' && <Calendar className="w-5 h-5 mr-2 text-yellow-600" />}
-                    {column.id === 'maintenance' && <FlaskConical className="w-5 h-5 mr-2 text-red-600" />}
-                    {column.title}
-                  </h2>
-                  <Badge variant="secondary">
-                    {filteredItems(column.items).length}
-                  </Badge>
-                </div>
-                
-                <Droppable droppableId={column.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className={`min-h-[200px] transition-colors ${
-                        snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg' : ''
-                      }`}
-                    >
-                      {filteredItems(column.items).map((supply, index) => (
-                        <SupplyCard key={supply.id} supply={supply} index={index} />
-                      ))}
-                      {provided.placeholder}
-                      {filteredItems(column.items).length === 0 && (
-                        <div className="text-center text-gray-500 py-8">
-                          <Microscope className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                          <p>No items in this category</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            ))}
-          </div>
-        </DragDropContext>
+        <DragDropBoard
+          columns={columns}
+          onDragEnd={onDragEnd}
+          filteredItems={filteredItems}
+        />
       </div>
     </div>
   );
